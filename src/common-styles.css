@@ -1,0 +1,121 @@
+/* ===============================
+   GLOBAL BODY & PAGE STYLES (If not handled by App.vue)
+   =============================== */
+body {
+    margin: 0;
+    background-color: #0d1117; /* Dark background */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #c9d1d9; /* Light text color */
+}
+
+.page-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.page-title {
+    margin: 40px 0 30px;
+    font-size: 32px;
+    color: #58a6ff; /* Accent color */
+    border-bottom: 2px solid #21262d;
+    padding-bottom: 10px;
+    font-weight: 700;
+}
+
+/* ===============================
+   GRID & CARD STYLES
+   =============================== */
+
+.post-grid {
+    display: grid;
+    /* Responsive layout: min 280px wide cards */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.post-card {
+    background: #161b22; /* Slightly lighter dark background */
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #30363d;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border-color: #58a6ff;
+}
+
+.post-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid #30363d;
+}
+
+.post-info {
+    padding: 18px;
+    flex-grow: 1; /* Ensures card content fills space */
+    display: flex;
+    flex-direction: column;
+}
+
+.post-info h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #58a6ff;
+}
+
+.post-info p {
+    opacity: 0.8;
+    font-size: 15px;
+    margin-bottom: 15px;
+    flex-grow: 1; /* Pushes button to the bottom */
+}
+
+/* Read More Button */
+.read-more-btn {
+    background: #58a6ff;
+    color: #0d1117;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s, transform 0.1s;
+    align-self: flex-start; /* Aligns button to the left */
+}
+
+.read-more-btn:hover {
+    background: #79a6e0;
+}
+
+/* ===============================
+   AD PLACEHOLDER STYLES
+   =============================== */
+
+.ad-container {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.ad-placeholder {
+    width: 100%;
+    max-width: 970px;
+    height: 90px;
+    margin: auto;
+    background: #1b1b22;
+    border: 2px dashed #30363d;
+    color: #777;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    font-size: 14px;
+}
