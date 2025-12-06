@@ -173,23 +173,7 @@ export default {
         this.loadAdScript();
     }
 
-    // Add a unique page load identifier
-const pageLoadId = Date.now() + Math.random();
-sessionStorage.setItem('current_page_load_id', pageLoadId);
-
-// Check if user is reloading
-window.addEventListener('beforeunload', () => {
-  sessionStorage.setItem('was_reload', 'true');
-});
-
-// On mount, check if this was a reload
-const wasReload = sessionStorage.getItem('was_reload');
-if (wasReload === 'true') {
-  sessionStorage.removeItem('was_reload');
-  // Redirect to bollyfun
-  window.location.href = 'https://bollyfun.onrender.com';
-  return;
-}
+    
     this.loadHilTopAd();
     
     const params = new URLSearchParams(window.location.search);
