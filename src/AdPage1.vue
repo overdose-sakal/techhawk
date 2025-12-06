@@ -136,62 +136,7 @@
 <script>
 import { supabase } from "./supabase";
 
-// Load NEW TOP Banner Ad
-function loadTopBanner() {
-  const container = document.getElementById("container-banner-top");
-  if (!container) return;
-
-  // 1. Set atOptions EXACTLY as required
-  window.atOptions = {
-    'key' : '30ae09be6a3bd0277c4ba2f3feb21851',
-    'format' : 'iframe',
-    'height' : 90,
-    'width' : 728,
-    'params' : {}
-  };
-
-  const script = document.createElement("script");
-  script.id = "hp-top-script";
-  script.type = "text/javascript";
-  script.src = "//www.highperformanceformat.com/30ae09be6a3bd0277c4ba2f3feb21851/invoke.js";
-
-  container.appendChild(script);
-}
-
-// Load ORIGINAL Native Adsterra Ad (Now at the bottom)
-function loadAdsterraNative() {
-  const script = document.createElement("script");
-  script.async = true;
-  script.setAttribute("data-cfasync", "false");
-  script.src =
-    "//pl28199799.effectivegatecpm.com/d3e5f275b234c1684bbd1dd364aced62/invoke.js";
-
-  if (!document.querySelector(`script[src*="d3e5f275b234c1684bbd1dd364aced62"]`)) {
-    document.body.appendChild(script);
-  }
-}
-
-// Load BOTTOM HighPerformanceFormat Banner Ad
-function loadBottomBanner() {
-  const container = document.getElementById("lower-ad-holder");
-  if (!container) return;
-
-  // 1. Set atOptions EXACTLY as required
-  window.atOptions = {
-    'key' : '97456b7c5baba7eb42518e0742cbe05d',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
-
-  const script = document.createElement("script");
-  script.id = "hp-script";
-  script.type = "text/javascript";
-  script.src = "//www.highperformanceformat.com/97456b7c5baba7eb42518e0742cbe05d/invoke.js";
-
-  container.appendChild(script);
-}
+// Removed ad loading functions: loadTopBanner, loadAdsterraNative, loadBottomBanner
 
 export default {
   data() {
@@ -222,22 +167,7 @@ export default {
   },
 
   mounted() {
-    // Load Ads
-    loadTopBanner();
-    loadAdsterraNative(); // Now loading the native ad at the bottomest
-      // POPUNDER
-  // 1. Create a new script element
-    const monetagScript = document.createElement('script');
-
-    // 2. Set the necessary attributes (data-zone and src)
-    monetagScript.dataset.zone = '10286531';
-    monetagScript.src = 'https://groleegni.net/vignette.min.js';
-
-    // 3. Append the script element to the end of the body
-    // This starts the download and execution of the ad script
-    document.body.appendChild(monetagScript);
-  
-
+    // Removed all ad script loading logic from mounted hook
 
     const params = new URLSearchParams(window.location.search);
     this.token = params.get("token");
@@ -286,7 +216,7 @@ export default {
     completeStep1() {
   this.step1Completed = true;
   this.$nextTick(() => {
-    loadBottomBanner();  // load only after DOM shows placeholder
+    // loadBottomBanner(); // Ad loading function call removed
     this.startCountdown2();
   });
 },
