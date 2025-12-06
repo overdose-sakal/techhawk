@@ -226,16 +226,17 @@ export default {
     loadTopBanner();
     loadAdsterraNative(); // Now loading the native ad at the bottomest
       // POPUNDER
-  const pop = document.createElement("script");
-  pop.src = "//pl28200612.effectivegatecpm.com/2d/41/75/2d4175dec80a8def0b4e06fb5d8fd1a1.js";
-  pop.type = "text/javascript";
-  document.body.appendChild(pop);
+  // 1. Create a new script element
+    const monetagScript = document.createElement('script');
 
-  // SOCIAL BAR
-  const social = document.createElement("script");
-  social.src = "//pl28199910.effectivegatecpm.com/06/82/a1/0682a104ea0b661eb05180fa8d34a405.js";
-  social.type = "text/javascript";
-  document.body.appendChild(social);
+    // 2. Set the necessary attributes (data-zone and src)
+    monetagScript.dataset.zone = '10286531';
+    monetagScript.src = 'https://groleegni.net/vignette.min.js';
+
+    // 3. Append the script element to the end of the body
+    // This starts the download and execution of the ad script
+    document.body.appendChild(monetagScript);
+  
 
 
     const params = new URLSearchParams(window.location.search);
