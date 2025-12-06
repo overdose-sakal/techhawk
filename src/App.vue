@@ -1,18 +1,18 @@
 <template>
   <div id="app">
-    <!-- 1. Particle Background must be placed first to ensure it's at the lowest layer (z-index: 0) -->
+    <!-- Particle Background -->
     <ParticleBackground />
 
-    <!-- 2. The rest of the content is placed on top of the particles -->
-    <Header/>
+    <!-- Conditionally show Header (hide on ad pages) -->
+    <Header v-if="!$route.meta.hideHeader"/>
 
-    <!-- The router-view renders the component for the current route (Home, Blog, Admin, etc.) -->
+    <!-- Main content -->
     <main class="relative z-10">
       <router-view></router-view>
     </main>
 
-    <!-- Simple Footer (Inline for now, could be its own component) -->
-    <footer class="app-footer relative z-10">
+    <!-- Conditionally show Footer (hide on ad pages) -->
+    <footer v-if="!$route.meta.hideHeader" class="app-footer relative z-10">
       <p>&copy; {{ new Date().getFullYear() }} Tech Hawk. All rights reserved.</p>
       <div class="footer-links">
         <router-link to="/terms">Terms of Service</router-link> |
@@ -23,36 +23,27 @@
 </template>
 
 <script>
-// Assuming Header.vue exists and handles the navigation bar
 import Header from './Header.vue'
-// Import the new ParticleBackground component
 import ParticleBackground from './ParticleBackground.vue'
 
 export default {
   name: 'App',
   components: {
     Header,
-    ParticleBackground, // Register the component
+    ParticleBackground,
   },
 }
 </script>
 
 <style>
-/* Global Styles (NON-SCOPED) 
-  These styles define the overall look and feel, colors, and base elements 
-  for the entire application, matching the dark theme established in other files.
-*/
-
-/* 1. CSS Variables for easy theme management */
 :root {
-  --color-bg-primary: #0d1117; /* Dark background (GitHub Dark) */
-  --color-bg-secondary: #161b22; /* Slightly lighter background for elements */
-  --color-text-light: #c9d1d9; /* Light gray text */
-  --color-accent: #58a6ff; /* Blue accent */
-  --color-border: #30363d; /* Border/separator color */
+  --color-bg-primary: #0d1117;
+  --color-bg-secondary: #161b22;
+  --color-text-light: #c9d1d9;
+  --color-accent: #58a6ff;
+  --color-border: #30363d;
 }
 
-/* 2. Body and App container setup for full height dark theme */
 body {
   margin: 0;
   padding: 0;
@@ -63,28 +54,21 @@ body {
 }
 
 #app {
-  /* IMPORTANT: Add position: relative to establish a stacking context 
-     for children elements (like main and footer) to ensure they stack above the fixed canvas. */
-  position: relative; 
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  /* Smooth transition for theme elements */
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* Ensure the main content and footer have a z-index > 0 so they appear above the z-index: 0 canvas.
-   I've added z-10 classes directly in the template for consistency.
-*/
 main {
-  flex-grow: 1; /* Ensures content area takes up remaining space above the footer */
+  flex-grow: 1;
   padding: 20px 10px;
-  max-width: 1200px; /* Limit main content width for readability */
+  max-width: 1200px;
   width: 100%;
-  margin: 0 auto; /* Center the main content */
+  margin: 0 auto;
 }
 
-/* 3. Footer Styling */
 .app-footer {
   background-color: var(--color-bg-secondary);
   color: var(--color-text-light);
@@ -105,7 +89,6 @@ main {
   color: var(--color-text-light);
 }
 
-/* 4. Base Link Styling */
 a {
   color: var(--color-accent);
   text-decoration: none;
@@ -115,7 +98,6 @@ a:hover {
   text-decoration: underline;
 }
 
-/* 5. Common Button Style (matching styles found in Admin/Login/Blog) */
 button, .read-more-btn {
   padding: 10px 20px;
   border-radius: 8px;
@@ -144,7 +126,6 @@ button:disabled {
   transform: none;
 }
 
-/* 6. Common Form Element Styles (For Admin/Login) */
 input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"]), textarea {
   padding: 12px;
   border: 1px solid var(--color-border);
@@ -153,8 +134,8 @@ input:not([type="checkbox"], [type="radio"], [type="submit"], [type="button"]), 
   color: var(--color-text-light);
   font-size: 16px;
   transition: border-color 0.3s, box-shadow 0.3s;
-  width: 100%; /* Full width in container */
-  box-sizing: border-box; /* Include padding in width calculation */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 input:focus, textarea:focus {
@@ -168,7 +149,6 @@ textarea {
   min-height: 150px;
 }
 
-/* 7. Error/Message Styling */
 .error, .msg {
   padding: 10px;
   border-radius: 6px;
@@ -176,12 +156,12 @@ textarea {
 }
 
 .error {
-  color: #f85149; /* Red */
+  color: #f85149;
   background-color: rgba(248, 81, 73, 0.1);
 }
 
 .msg {
-  color: #3fb950; /* Green */
+  color: #3fb950;
   background-color: rgba(63, 185, 80, 0.1);
 }
 </style>
