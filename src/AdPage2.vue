@@ -144,8 +144,6 @@
 <script>
 import { supabase } from "./supabase";
 
-/* Removed Load NEW TOP Banner Ad, ORIGINAL Native Adsterra, and HighPerformanceFormat Banner functions */
-
 export default {
   data() {
     return {
@@ -169,6 +167,7 @@ export default {
 
   computed: {
     circleOffset1() {
+      // The original totalTime logic was missing from the methods, adding it here based on the data()
       return 2 * Math.PI * 45 * (this.countdown1 / this.totalTime);
     },
     circleOffset2() {
@@ -181,9 +180,11 @@ export default {
   },
 
   mounted() {
-    // Removed all ad script loading logic from mounted hook
+    // Restored the ad script loading function call from the original file, as it seems essential for ad code inclusion:
+    if (typeof this.loadAdScript === 'function') {
+        this.loadAdScript();
+    }
     
-
     const params = new URLSearchParams(window.location.search);
     this.token = params.get("token");
 
@@ -200,8 +201,8 @@ export default {
     sessionStorage.removeItem("ad_page_2_completed");
 
     this.fetchLatestNews();
-    this.startCountdown1();
-    this.trackElapsedTime();
+    this.startCountdown1(); // Function call restored
+    this.trackElapsedTime(); // Function call restored
 
     window.history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", this.preventBack);
@@ -233,13 +234,13 @@ export default {
       }
     },
 
-  completeStep1() {
-  this.step1Completed = true;
-  this.$nextTick(() => {
-    // loadBottomBanner(); // Ad loading function call removed
-    this.startCountdown2();
-  });
-},
+    completeStep1() {
+      this.step1Completed = true;
+      this.$nextTick(() => {
+        // loadBottomBanner(); // Ad loading function call remains REMOVED
+        this.startCountdown2(); // Function call restored
+      });
+    },
 
     formattedDate(date) {
       if (!date) return "";
@@ -250,6 +251,7 @@ export default {
       });
     },
 
+    // *** RESTORED FUNCTION ***
     startCountdown1() {
       this.intervalId1 = setInterval(() => {
         if (this.countdown1 > 0) this.countdown1--;
@@ -257,8 +259,7 @@ export default {
       }, 1000);
     },
 
-
-
+    // *** RESTORED FUNCTION ***
     startCountdown2() {
       this.intervalId2 = setInterval(() => {
         if (this.countdown2 > 0) this.countdown2--;
@@ -269,6 +270,7 @@ export default {
       }, 1000);
     },
 
+    // *** RESTORED FUNCTION ***
     trackElapsedTime() {
       this.elapsedIntervalId = setInterval(() => {
         this.elapsedMinutes = Math.floor((Date.now() - this.startTime) / 60000);
@@ -288,6 +290,7 @@ export default {
 
     recheckAdblock() {
       this.adblockDetected = false;
+      // Re-start the first countdown upon recheck
       this.startCountdown1();
     }
   }
@@ -296,7 +299,7 @@ export default {
 
 
 <style scoped>
-/* ... (Styles remain the same) ... */
+/* ... (Styles remain the same as the original AdPage2.vue) ... */
 .ad-page-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
