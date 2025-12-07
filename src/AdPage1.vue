@@ -3,7 +3,7 @@
     
     <div v-if="adblockDetected" class="adblock-overlay">
       <div class="adblock-warning">
-        <h2>âš ï¸ Ad Blocker Detected</h2>
+        <h2>⚠️ Ad Blocker Detected</h2>
         <p>Please disable your ad blocker to continue downloading.</p>
         <p class="small-text">This helps us keep the service free!</p>
         <button @click="recheckAdblock" class="retry-btn">I've Disabled It</button>
@@ -20,7 +20,7 @@
         <div class="step">3</div>
       </div>
 
-      <h1 class="page-title">ðŸŽ¬ Preparing Your Download</h1>
+      <h1 class="page-title">🎬 Preparing Your Download</h1>
 
       <div class="ad-container top-ad">
         <div class="ad-placeholder banner-ad-placeholder">
@@ -59,7 +59,7 @@
 
       <div v-if="step1Completed && latestBlog" class="full-article-section">
         <article class="article-content">
-          <h2 class="article-title">ðŸ“š {{ latestBlog.title }}</h2>
+          <h2 class="article-title">📚 {{ latestBlog.title }}</h2>
 
           <div class="article-meta" v-if="latestBlog.created_at">
             <span>{{ formattedDate(latestBlog.created_at) }}</span>
@@ -80,7 +80,7 @@
       </div>
 
       <div v-else-if="step1Completed && !latestBlog && !isLoadingBlog" class="no-content-section">
-        <p>ðŸ“ No blogs available yet. Check back soon!</p>
+        <p>📜 No blogs available yet. Check back soon!</p>
       </div>
 
       <div v-if="step1Completed" class="timer-section">
@@ -126,7 +126,7 @@
       </div>
 
       <div class="security-notice">
-        <p>ðŸ”’ Secure Download | â±ï¸ Link expires in 60 minutes</p>
+        <p>🔒 Secure Download | ⏳ Link expires in 60 minutes</p>
       </div>
 
     </div>
@@ -134,6 +134,7 @@
 </template>
 
 <script>
+// NOTE: Assuming 'supabase' is a correctly imported module.
 import { supabase } from "./supabase";
 
 export default {
@@ -156,8 +157,6 @@ export default {
   computed: {
     circleOffset1() {
       const circ = 2 * Math.PI * 45;
-      // The original totalTime logic was missing from the methods, adding it here based on the data()
-      // Note: totalTime is only used for the circle stroke calculation and is set to 10.
       return circ * (this.countdown1 / this.totalTime);
     },
     circleOffset2() {
@@ -168,12 +167,11 @@ export default {
 
   mounted() {
     // Restored the ad script loading function call from the original file, as it seems essential for ad code inclusion:
-    // This function must exist globally or be imported, but since it was in the original file, I'm keeping the call.
     if (typeof this.loadAdScript === 'function') {
         this.loadAdScript();
     }
-
     
+    // This call will now correctly inject the ad and won't throw an error.
     this.loadHilTopAd();
     
     const params = new URLSearchParams(window.location.search);
@@ -188,7 +186,8 @@ export default {
     sessionStorage.removeItem("ad_page_2_completed");
 
     this.fetchLatestBlog();
-    this.startCountdown1(); // Function call restored
+    // Countdown will now start correctly as there's no JS error before it.
+    this.startCountdown1(); 
     
     window.history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", this.preventBack);
@@ -219,8 +218,12 @@ export default {
       }
     },
 
+    /**
+     * Corrected function to inject the ad script into the 'container-banner-top' div.
+     * The erroneous `document.body.appendChild(script)` line has been removed.
+     */
     loadHilTopAd() {
-        // 1. Your original ad script, wrapped in backticks to treat as a string
+        // The ad script content
         const adScriptContent = `
 (function(uhc){
 var d = document,
@@ -234,17 +237,17 @@ l.parentNode.insertBefore(s, l);
 })({})
         `;
 
-        // 2. Create the <script> tag
+        // 1. Create the <script> tag
         const scriptElement = document.createElement("script");
         scriptElement.type = "text/javascript";
         
-        // 3. Set the script's content to your ad code
+        // 2. Set the script's content to your ad code
         scriptElement.text = adScriptContent;
 
-        // 4. Find the target placeholder (your first ad holder)
+        // 3. Find the target placeholder (your first ad holder: container-banner-top)
         const targetElement = document.getElementById("container-banner-top");
 
-        // 5. Inject the script element into the placeholder
+        // 4. Inject the script element into the placeholder
         if (targetElement) {
             targetElement.appendChild(scriptElement);
         } else {
@@ -252,26 +255,13 @@ l.parentNode.insertBefore(s, l);
             // Fallback: Append to body if the placeholder is somehow missing
             document.body.appendChild(scriptElement);
         }
-
-
-  //ad script
-
-
-document.body.appendChild(script);
     },
-
-
-
-  //ad script end
-
-
-
 
     completeStep1() {
       this.step1Completed = true;
       this.$nextTick(() => {
         // loadBottomBanner(); // Ad loading function call remains REMOVED
-        this.startCountdown2(); // Function call restored
+        this.startCountdown2();
       });
     },
 
@@ -284,16 +274,17 @@ document.body.appendChild(script);
       });
     },
 
-    // *** RESTORED FUNCTION ***
+    // *** COUNTDOWN FUNCTIONS ***
     startCountdown1() {
+      if (this.intervalId1) clearInterval(this.intervalId1); // Clear any existing interval
       this.intervalId1 = setInterval(() => {
         if (this.countdown1 > 0) this.countdown1--;
         else clearInterval(this.intervalId1);
       }, 1000);
     },
 
-    // *** RESTORED FUNCTION ***
     startCountdown2() {
+      if (this.intervalId2) clearInterval(this.intervalId2); // Clear any existing interval
       this.intervalId2 = setInterval(() => {
         if (this.countdown2 > 0) this.countdown2--;
         else {
@@ -328,7 +319,7 @@ document.body.appendChild(script);
 </script>
 
 <style scoped>
-/* ... (Styles remain the same as the original AdPage1.vue) ... */
+/* All styles remain the same, ensuring compatibility with the new component structure */
 .ad-page-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
