@@ -188,14 +188,7 @@ export default {
 
     this.loadHilTopAd();
 
-    const container = document.getElementById("my-ad-slot");
-  const script = document.createElement("script");
 
-  script.src = "//emotional-orange.com/biX.V/sgdDGrlH0sY/WKcw/SenmG9BuaZRU/l_kLPQTIYi3OMvjZEY2ENXD-IltLNojAc/ysMVTaYi0tMrwX";
-  script.async = true;
-  script.referrerPolicy = "no-referrer-when-downgrade";
-
-  container.appendChild(script);
     
     const params = new URLSearchParams(window.location.search);
     this.token = params.get("token");
@@ -218,6 +211,15 @@ export default {
 
     window.history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", this.preventBack);
+
+        const container = document.getElementById("my-ad-slot");
+  const script = document.createElement("script");
+
+  script.src = "//emotional-orange.com/biX.V/sgdDGrlH0sY/WKcw/SenmG9BuaZRU/l_kLPQTIYi3OMvjZEY2ENXD-IltLNojAc/ysMVTaYi0tMrwX";
+  script.async = true;
+  script.referrerPolicy = "no-referrer-when-downgrade";
+
+  container.appendChild(script);
   },
 
   beforeUnmount() {
