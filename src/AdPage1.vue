@@ -115,7 +115,7 @@
 
       <div v-if="step1Completed" class="ad-container bottom-ad">
         <div class="ad-placeholder">
-          <div id="lower-ad-holder"></div>
+          <div id="my-ad-slot"></div>
         </div>
       </div>
       
@@ -171,6 +171,15 @@ export default {
     }
     
     this.loadHilTopAd();
+
+      const container = document.getElementById("my-ad-slot");
+  const script = document.createElement("script");
+
+  script.src = "//emotional-orange.com/biX.V/sgdDGrlH0sY/WKcw/SenmG9BuaZRU/l_kLPQTIYi3OMvjZEY2ENXD-IltLNojAc/ysMVTaYi0tMrwX";
+  script.async = true;
+  script.referrerPolicy = "no-referrer-when-downgrade";
+
+  container.appendChild(script);
     
     const params = new URLSearchParams(window.location.search);
     this.token = params.get("token");
