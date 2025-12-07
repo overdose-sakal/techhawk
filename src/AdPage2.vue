@@ -168,7 +168,6 @@ export default {
 
   computed: {
     circleOffset1() {
-      // The original totalTime logic was missing from the methods, adding it here based on the data()
       return 2 * Math.PI * 45 * (this.countdown1 / this.totalTime);
     },
     circleOffset2() {
@@ -181,12 +180,10 @@ export default {
   },
 
   mounted() {
-    // Restored the ad script loading function call from the original file, as it seems essential for ad code inclusion:
     if (typeof this.loadAdScript === 'function') {
         this.loadAdScript();
     }
 
-    // This call will now correctly inject the ad and won't throw an error.
     this.loadHilTopAd();
     
     const params = new URLSearchParams(window.location.search);
@@ -205,7 +202,6 @@ export default {
     sessionStorage.removeItem("ad_page_2_completed");
 
     this.fetchLatestNews();
-    // Countdown will now start correctly as there's no JS error before it.
     this.startCountdown1(); 
     this.trackElapsedTime(); 
 
@@ -239,11 +235,7 @@ export default {
       }
     },
 
-    /**
-     * Corrected function to inject the ad script into the 'container-banner-top' div.
-     */
     loadHilTopAd() {
-        // The ad script content
         const adScriptContent = `
 (function(uhc){
 var d = document,
@@ -257,22 +249,16 @@ l.parentNode.insertBefore(s, l);
 })({})
         `;
 
-        // 1. Create the <script> tag
         const scriptElement = document.createElement("script");
         scriptElement.type = "text/javascript";
-        
-        // 2. Set the script's content to your ad code
         scriptElement.text = adScriptContent;
 
-        // 3. Find the target placeholder (your first ad holder: container-banner-top)
         const targetElement = document.getElementById("container-banner-top");
 
-        // 4. Inject the script element into the placeholder
         if (targetElement) {
             targetElement.appendChild(scriptElement);
         } else {
             console.error("Ad holder 'container-banner-top' not found.");
-            // Fallback: Append to body if the placeholder is somehow missing
             document.body.appendChild(scriptElement);
         }
     },
@@ -280,7 +266,6 @@ l.parentNode.insertBefore(s, l);
     completeStep1() {
       this.step1Completed = true;
       this.$nextTick(() => {
-        // loadBottomBanner(); // Ad loading function call remains REMOVED
         this.startCountdown2(); 
       });
     },
@@ -294,9 +279,8 @@ l.parentNode.insertBefore(s, l);
       });
     },
 
-    // *** COUNTDOWN FUNCTIONS ***
     startCountdown1() {
-      if (this.intervalId1) clearInterval(this.intervalId1); // Clear any existing interval
+      if (this.intervalId1) clearInterval(this.intervalId1);
       this.intervalId1 = setInterval(() => {
         if (this.countdown1 > 0) this.countdown1--;
         else clearInterval(this.intervalId1);
@@ -304,7 +288,7 @@ l.parentNode.insertBefore(s, l);
     },
 
     startCountdown2() {
-      if (this.intervalId2) clearInterval(this.intervalId2); // Clear any existing interval
+      if (this.intervalId2) clearInterval(this.intervalId2);
       this.intervalId2 = setInterval(() => {
         if (this.countdown2 > 0) this.countdown2--;
         else {
@@ -315,7 +299,7 @@ l.parentNode.insertBefore(s, l);
     },
 
     trackElapsedTime() {
-      if (this.elapsedIntervalId) clearInterval(this.elapsedIntervalId); // Clear any existing interval
+      if (this.elapsedIntervalId) clearInterval(this.elapsedIntervalId);
       this.elapsedIntervalId = setInterval(() => {
         this.elapsedMinutes = Math.floor((Date.now() - this.startTime) / 60000);
       }, 10000);
@@ -334,7 +318,6 @@ l.parentNode.insertBefore(s, l);
 
     recheckAdblock() {
       this.adblockDetected = false;
-      // Re-start the first countdown upon recheck
       this.startCountdown1();
     }
   }
@@ -343,7 +326,35 @@ l.parentNode.insertBefore(s, l);
 
 
 <style scoped>
-/* All styles remain the same, ensuring compatibility with the new component structure */
+/*
+ * *** FIX: AGGRESSIVE CSS CONTAINMENT ***
+ * These styles force the banner size and use position: relative/overflow: hidden
+ * to prevent the fixed ad script from escaping to the bottom of the page.
+*/
+.ad-container.top-ad {
+  position: relative; /* Essential for containing fixed children elements */
+  overflow: hidden; /* Essential for clipping out-of-bounds fixed content */
+  margin: 30px auto; /* Center the whole block */
+  display: flex;
+  justify-content: center;
+  
+  /* EXPLICIT SIZE MATCHING 728x90 BANNER */
+  height: 90px; 
+  max-height: 90px;
+  width: 100%;
+  max-width: 900px;
+  z-index: 10; /* Make sure it stacks above most elements */
+}
+
+.ad-placeholder.banner-ad-placeholder {
+  /* EXPLICIT SIZE MATCHING 728x90 BANNER */
+  height: 90px;
+  min-height: 90px;
+  max-width: 728px;
+}
+
+
+/* Base styles (kept for completeness) */
 .ad-page-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
@@ -409,13 +420,6 @@ l.parentNode.insertBefore(s, l);
   margin-bottom: 40px;
 }
 
-/* FIX: Add positional context and overflow clipping to try and contain the fixed ad */
-.ad-container.top-ad {
-  position: relative;
-  overflow: hidden;
-  max-height: 90px;
-}
-
 .ad-container {
   margin: 30px 0;
   display: flex;
@@ -432,11 +436,6 @@ l.parentNode.insertBefore(s, l);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.ad-placeholder.banner-ad-placeholder {
-  /* For the new 728x90 banner */
-  min-height: 90px;
 }
 
 .ad-placeholder.native-ad-placeholder {
