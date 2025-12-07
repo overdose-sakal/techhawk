@@ -220,7 +220,6 @@ export default {
 
     /**
      * Corrected function to inject the ad script into the 'container-banner-top' div.
-     * The erroneous `document.body.appendChild(script)` line has been removed.
      */
     loadHilTopAd() {
         // The ad script content
@@ -372,6 +371,13 @@ l.parentNode.insertBefore(s, l);
   font-size: 32px;
   color: #58a6ff;
   margin-bottom: 40px;
+}
+
+/* FIX: Add positional context and overflow clipping to try and contain the fixed ad */
+.ad-container.top-ad {
+  position: relative;
+  overflow: hidden;
+  max-height: 90px; 
 }
 
 .ad-container {
