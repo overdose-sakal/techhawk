@@ -38,7 +38,7 @@
 
       <div class="timer-section">
         <div v-if="countdown1 > 0" class="countdown-display">
-
+          
           <div class="countdown-circle">
             <svg class="countdown-svg" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="45" class="countdown-bg"></circle>
@@ -46,29 +46,29 @@
                 cx="50" 
                 cy="50" 
                 r="45" 
-                class="countdown-progress"
-                :style="{ strokeDashoffset: circleOffset1 }"
+                class="countdown-ring" 
+                :style="{ 'stroke-dashoffset': progressStyle1 }"
               ></circle>
             </svg>
-            <div class="countdown-number">{{ countdown1 }}</div>
+            <span class="countdown-time">{{ countdown1 }}</span>
           </div>
 
-          <p class="countdown-text">Please wait...</p>
+          <p class="timer-text">Finalizing your secure download link...</p>
         </div>
 
         <button 
-          v-else-if="!step1Completed"
-          @click="completeStep1"
+          v-else 
+          @click="handleDownload"
           class="continue-btn"
+          :disabled="!downloadUrl"
         >
-          Verify as a Human
+          Download Now! &darr;
         </button>
       </div>
 
-      <div v-if="step1Completed && latestNews" class="full-article-section">
+      <div v-if="latestNews" class="full-article-section">
         <article class="article-content">
-
-          <h2 class="article-title">📰 {{ latestNews.title }}</h2>
+          <h2 class="article-title">📢 {{ latestNews.title }}</h2>
 
           <div class="article-meta" v-if="latestNews.created_at">
             <span>{{ formattedDate(latestNews.created_at) }}</span>
@@ -82,207 +82,56 @@
             onerror="this.onerror=null;this.src='https://placehold.co/900x400/161b22/c9d1d9?text=No+Image'"
           />
 
-          <div class="article-body" v-html="latestNews.content"></div>
+          <div class="article-body">
+            <div v-html="sanitizedNewsContent"></div>
+          </div>
         </article>
       </div>
-
-      <div v-else-if="step1Completed && !latestNews && !isLoadingNews" class="no-content-section">
-        <p>📰 No news available yet. Check back soon!</p>
-      </div>
-
-      <div v-if="step1Completed" class="timer-section">
-        <div v-if="countdown2 > 0" class="countdown-display">
-
-          <div class="countdown-circle">
-            <svg class="countdown-svg" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" class="countdown-bg"></circle>
-              <circle 
-                cx="50" 
-                cy="50" 
-                r="45" 
-                class="countdown-progress"
-                :style="{ strokeDashoffset: circleOffset2 }"
-              ></circle>
-            </svg>
-            <div class="countdown-number">{{ countdown2 }}</div>
-          </div>
-
-          <p class="countdown-text">Generating download link...</p>
-        </div>
-
-        <button 
-          v-else
-          @click="goToDownload"
-          class="continue-btn pulse"
-          :disabled="!canContinue"
-        >
-          Continue
-        </button>
-      </div>
-
-      <div v-if="step1Completed" class="ad-container bottom-ad">
-        <div class="ad-placeholder">
-          <!-- Anywhere you want the ad to load -->
-<div id="my-ad-slot"></div>
-
+      <div class="ad-container middle-ad">
+        <div class="ad-placeholder square-ad-placeholder">
+          <div id="container-square-middle"></div>
         </div>
       </div>
 
-      <div class="ad-container bottomest-ad">
-        <div class="ad-placeholder native-ad-placeholder">
-          <div id="container-d3e5f275b234c1684bbd1dd364aced62"></div>
-        </div>
-      </div>
-
-      <div class="security-notice">
-        <p>🔒 Secure Download | ⏳ Link expires in {{ remainingMinutes }} minutes</p>
-        <p class="small-notice">Your file will be sent via Telegram bot</p>
-      </div>
-
+      <p class="security-notice">
+        Thank you for supporting us by viewing the ads. Enjoy your movie!
+      </p>
     </div>
+    
   </div>
 </template>
 
 <script>
-// NOTE: Assuming 'supabase' is a correctly imported module.
 import { supabase } from "./supabase";
+import DOMPurify from 'dompurify'; // 1. DOMPurify Import
 
 export default {
+  name: 'AdPage2',
   data() {
     return {
-      token: "",
-      countdown1: 10,
-      countdown2: 10,
-      step1Completed: false,
-      canContinue: false,
+      countdown1: 5, 
+      interval1: null,
       adblockDetected: false,
       isValidSession: true,
-      latestNews: null,
+      downloadUrl: null,
+      latestNews: null, 
       isLoadingNews: true,
-      intervalId1: null,
-      intervalId2: null,
-      elapsedIntervalId: null,
-      elapsedMinutes: 0,
-      startTime: Date.now(),
-      totalTime: 10
     };
   },
-
   computed: {
-    circleOffset1() {
-      return 2 * Math.PI * 45 * (this.countdown1 / this.totalTime);
+    progressStyle1() {
+      const circumference = 2 * Math.PI * 45;
+      return circumference * (1 - this.countdown1 / 5);
     },
-    circleOffset2() {
-      return 2 * Math.PI * 45 * (this.countdown2 / this.totalTime);
-    },
-    remainingMinutes() {
-      const remaining = 60 - this.elapsedMinutes;
-      return remaining > 0 ? remaining : 0;
-    }
-  },
-
-  mounted() {
-    if (typeof this.loadAdScript === 'function') {
-        this.loadAdScript();
-    }
-
-    this.loadHilTopAd();
-
-
-    
-    const params = new URLSearchParams(window.location.search);
-    this.token = params.get("token");
-
-    if (!this.token) {
-      this.isValidSession = false;
-      return;
-    }
-
-    if (!sessionStorage.getItem("ad_page_1_completed")) {
-      this.isValidSession = false;
-      return;
-    }
-
-    sessionStorage.removeItem("ad_page_2_completed");
-
-    this.fetchLatestNews();
-    this.startCountdown1(); 
-    this.trackElapsedTime(); 
-
-    window.history.pushState(null, "", window.location.href);
-    window.addEventListener("popstate", this.preventBack);
-
-        const container = document.getElementById("my-ad-slot");
-  const script = document.createElement("script");
-
-  script.src = "//emotional-orange.com/biX.V/sgdDGrlH0sY/WKcw/SenmG9BuaZRU/l_kLPQTIYi3OMvjZEY2ENXD-IltLNojAc/ysMVTaYi0tMrwX";
-  script.async = true;
-  script.referrerPolicy = "no-referrer-when-downgrade";
-
-  container.appendChild(script);
-  },
-
-  beforeUnmount() {
-    if (this.intervalId1) clearInterval(this.intervalId1);
-    if (this.intervalId2) clearInterval(this.intervalId2);
-    if (this.elapsedIntervalId) clearInterval(this.elapsedIntervalId);
-    window.removeEventListener("popstate", this.preventBack);
-  },
-
-  methods: {
-    async fetchLatestNews() {
-      this.isLoadingNews = true;
-      try {
-        const { data } = await supabase
-          .from("news")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
-
-        this.latestNews = data;
-      } catch {
-        this.latestNews = null;
-      } finally {
-        this.isLoadingNews = false;
+    // 2. Computed property for sanitizing the news content
+    sanitizedNewsContent() {
+      if (this.latestNews && this.latestNews.content) {
+        return DOMPurify.sanitize(this.latestNews.content);
       }
+      return '';
     },
-
-    loadHilTopAd() {
-        const adScriptContent = `
-(function(uhc){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = uhc || {};
-s.src = "//emotional-orange.com/b.XwVhsEdsGGl/0RYuWwcp/Oezm/9cuNZ/U/l/krP/TLYr3jMrjJE/1CNujsgOtENojPc_y/MOTwU-2/OGQq";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-        `;
-
-        const scriptElement = document.createElement("script");
-        scriptElement.type = "text/javascript";
-        scriptElement.text = adScriptContent;
-
-        const targetElement = document.getElementById("container-banner-top");
-
-        if (targetElement) {
-            targetElement.appendChild(scriptElement);
-        } else {
-            console.error("Ad holder 'container-banner-top' not found.");
-            document.body.appendChild(scriptElement);
-        }
-    },
-
-    completeStep1() {
-      this.step1Completed = true;
-      this.$nextTick(() => {
-        this.startCountdown2(); 
-      });
-    },
-
+  },
+  methods: {
     formattedDate(date) {
       if (!date) return "";
       return new Date(date).toLocaleDateString("en-US", {
@@ -291,49 +140,71 @@ l.parentNode.insertBefore(s, l);
         day: "numeric"
       });
     },
-
-    startCountdown1() {
-      if (this.intervalId1) clearInterval(this.intervalId1);
-      this.intervalId1 = setInterval(() => {
-        if (this.countdown1 > 0) this.countdown1--;
-        else clearInterval(this.intervalId1);
-      }, 1000);
+    async fetchLatestNews() { 
+      this.isLoadingNews = true;
+      try {
+        const { data } = await supabase
+          .from("news")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        this.latestNews = data;
+      } catch (error) {
+        console.error("News fetch failed:", error);
+      } finally {
+        this.isLoadingNews = false;
+      }
     },
-
-    startCountdown2() {
-      if (this.intervalId2) clearInterval(this.intervalId2);
-      this.intervalId2 = setInterval(() => {
-        if (this.countdown2 > 0) this.countdown2--;
-        else {
-          clearInterval(this.intervalId2);
-          this.canContinue = true;
+    startCountdown1() {
+      if (this.interval1) clearInterval(this.interval1);
+      this.interval1 = setInterval(() => {
+        if (this.countdown1 > 0) {
+          this.countdown1--;
+        } else {
+          clearInterval(this.interval1);
+          this.generateDownloadLink();
         }
       }, 1000);
     },
-
-    trackElapsedTime() {
-      if (this.elapsedIntervalId) clearInterval(this.elapsedIntervalId);
-      this.elapsedIntervalId = setInterval(() => {
-        this.elapsedMinutes = Math.floor((Date.now() - this.startTime) / 60000);
-      }, 10000);
+    generateDownloadLink() {
+      this.downloadUrl = 'https://link.to.your.movie.com/signed-url?token=xyz123';
     },
-
-    goToDownload() {
-      if (!this.canContinue) return;
-
-      sessionStorage.setItem("ad_page_2_completed", "true");
-      window.location.href = `https://bollyfun.onrender.com/dl/${this.token}/`;
+    handleDownload() {
+      if (this.downloadUrl) {
+        window.location.href = this.downloadUrl;
+        sessionStorage.setItem("ad_page_2_completed", "true");
+      }
     },
-
-    preventBack() {
-      window.history.pushState(null, "", window.location.href);
+    checkAdblock() {
+      this.adblockDetected = false; 
     },
-
     recheckAdblock() {
-      this.adblockDetected = false;
-      this.startCountdown1();
+      this.checkAdblock();
+      if (!this.adblockDetected) {
+        this.startCountdown1();
+      }
+    },
+    validateSession() {
+        const completed1 = sessionStorage.getItem("ad_page_1_completed");
+        if (!completed1) {
+            this.isValidSession = false;
+        }
     }
-  }
+  },
+  mounted() {
+    this.validateSession();
+    this.fetchLatestNews(); // Fetch news content
+    if (this.isValidSession) {
+        this.checkAdblock();
+        if (!this.adblockDetected) {
+            this.startCountdown1();
+        }
+    }
+  },
+  beforeUnmount() {
+    if (this.interval1) clearInterval(this.interval1);
+  },
 };
 </script>
 

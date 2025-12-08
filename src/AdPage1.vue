@@ -74,7 +74,7 @@
           />
 
           <div class="article-body">
-            <p>{{ latestBlog.content }}</p>
+            <div v-html="sanitizedBlogContent"></div>
           </div>
         </article>
       </div>
@@ -134,8 +134,9 @@
 </template>
 
 <script>
-// NOTE: Assuming 'supabase' is a correctly imported module.
 import { supabase } from "./supabase";
+// 1. Import DOMPurify
+import DOMPurify from 'dompurify';
 
 export default {
   data() {
@@ -155,13 +156,12 @@ export default {
   },
 
   computed: {
-    sanitizedPaginatedBlogs() {
-      const start = (this.blogPage - 1) * this.perPage;
-      return this.blogs.slice(start, start + this.perPage).map(b => ({
-        ...b,
-        // Sanitize the substring content before rendering
-        safeContentPreview: DOMPurify.sanitize(b.content.substring(0, 80) + '...')
-      }));
+    // 2. Computed property for sanitizing the blog content
+    sanitizedBlogContent() {
+      if (this.latestBlog && this.latestBlog.content) {
+        return DOMPurify.sanitize(this.latestBlog.content);
+      }
+      return '';
     },
     circleOffset1() {
       const circ = 2 * Math.PI * 45;
