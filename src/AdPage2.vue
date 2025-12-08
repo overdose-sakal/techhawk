@@ -89,7 +89,6 @@
       <div v-else-if="step1Completed && !latestNews && !isLoadingNews" class="no-content-section">
         <p>📰 No news available yet. Check back soon!</p>
       </div>
-
       <div v-if="step1Completed" class="timer-section">
         <div v-if="countdown2 > 0" class="countdown-display">
 
@@ -135,7 +134,7 @@
 
       <div class="security-notice">
         <p>🔒 Secure Download | ⏳ Link expires in {{ remainingMinutes }} minutes</p>
-        <p class="small-notice">Your file will be sent via Telegram bot</p>
+        <p class="small-notice">Your file will be sent via Telegram bot</p> 
       </div>
 
     </div>
@@ -144,7 +143,7 @@
 
 <script>
 import { supabase } from "./supabase";
-// 1. IMPORT DOMPURIFY
+// Import DOMPurify for XSS protection
 import DOMPurify from 'dompurify';
 
 export default {
@@ -169,7 +168,7 @@ export default {
   },
 
   computed: {
-    // 2. COMPUTED PROPERTY FOR SANITIZATION
+    // Computed property for sanitizing the news content
     sanitizedNewsContent() {
       if (this.latestNews && this.latestNews.content) {
         return DOMPurify.sanitize(this.latestNews.content);
@@ -304,7 +303,7 @@ l.parentNode.insertBefore(s, l);
         if (this.countdown1 > 0) this.countdown1--;
         else {
             clearInterval(this.intervalId1);
-            this.completeStep1(); // Auto-completes the first step to reveal news
+            this.completeStep1(); 
         }
       }, 1000);
     },
@@ -328,7 +327,6 @@ l.parentNode.insertBefore(s, l);
 
         if (this.remainingMinutes <= 0) {
           clearInterval(this.elapsedIntervalId);
-          // Optionally, redirect to an expired page or show an error
         }
       }, 60000); // Check every minute
     },
@@ -339,10 +337,19 @@ l.parentNode.insertBefore(s, l);
       sessionStorage.setItem("ad_page_2_completed", "true");
 
       const params = new URLSearchParams(window.location.search);
-      // Construct the final download link based on token, title, and quality
-      window.location.href = `/download?token=${this.token}&title=${params.get(
-        "title"
-      )}&quality=${params.get("quality")}`;
+      
+      // *** FIX: Redirecting directly to the Telegram bot link or an intermediary page that redirects to it. ***
+      // Assuming the Telegram bot link is structured to accept the token or a unique identifier.
+      // Example of a Telegram link structure:
+      const title = params.get("title") || 'file';
+      const quality = params.get("quality") || 'HD';
+      
+      // Constructing a deep-link URL to interact with the bot
+      // You may need to replace 'YourBotUsername' with the actual bot username and define the `start` payload.
+      // The payload (e.g., this.token) will contain the information needed to deliver the file.
+      const telegramUrl = `https://t.me/YourBotUsername?start=${this.token}-${title}-${quality}`;
+      
+      window.location.href = telegramUrl;
     },
 
     preventBack() {
