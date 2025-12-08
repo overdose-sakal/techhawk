@@ -334,27 +334,79 @@ export default {
 
 <style scoped>
 
-  .article-ad-sidebar-layout {
+/*
+  You should add the following code inside the <style> section 
+  of your AdPage1.vue component.
+*/
+
+/* ------------------------------------------- */
+/* General Ad Container Styling (If not present) */
+/* ------------------------------------------- */
+
+/* Set a max-width for the Banner Two and Banner Three, 
+   and make them center-aligned in the page. */
+.ad-container.banner-two,
+.ad-container.banner-three {
+  margin: 20px auto;
+  max-width: 300px; /* Max width is the ad width */
+}
+
+/* ------------------------------------------- */
+/* Desktop Layout for Article and Sidebars      */
+/* ------------------------------------------- */
+
+.article-ad-sidebar-layout {
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Aligns items to the top */
-  max-width: 1280px; /* Adjust as needed */
+  align-items: flex-start;
+  max-width: 1280px;
   margin: 50px auto;
-  gap: 20px; /* Space between ads and article */
+  gap: 20px; 
 }
 
-/* Ensure the article section takes the remaining space in the center */
-.article-ad-sidebar-layout .full-article-section,
-.article-ad-sidebar-layout .no-content-section {
-    flex-grow: 1;
-    max-width: 900px; /* Max width of the article */
-}
-
-/* Ensure vertical ads don't take up too much space when not visible or on small screens */
+/* Ensure vertical ads are visible on desktop */
 .ad-container.vertical-ad {
   flex-shrink: 0;
   width: 160px;
   height: 600px;
+}
+
+
+/* ------------------------------------------- */
+/* Mobile Fixes (Media Query)                   */
+/* ------------------------------------------- */
+@media (max-width: 960px) {
+  
+  /* 1. HIDE the large Vertical Banners (4 & 5) on mobile */
+  .ad-container.vertical-ad {
+    display: none;
+  }
+  
+  /* 2. Change the layout to stack elements vertically on mobile */
+  .article-ad-sidebar-layout {
+    flex-direction: column;
+    align-items: center; /* Center the blog content */
+    margin: 30px 10px; /* Add slight padding on sides */
+  }
+
+  /* 3. Ensure the 'Banner Big' (900x250) iframe doesn't cause overflow */
+  .ad-container.top-ad {
+    /* Use overflow: hidden to contain the wide iframe */
+    overflow: hidden; 
+    /* Set a reasonable height for the visible part */
+    height: 250px; 
+    max-width: 100%;
+  }
+
+  /* 4. Center the 'Banner Big' iframe to prevent it from hugging the left edge */
+  .ad-container.top-ad iframe {
+    /* Translate it to the left to effectively center the 900px content 
+       within a smaller screen (e.g., 360px wide screen) */
+    transform: translateX(calc((900px - 100vw) / -2)); 
+    margin-left: 50%;
+    transform: translateX(-50%);
+    /* This centering technique is often needed for wide, fixed-width iframes */
+  }
 }
 /*
  * *** FIX: AGGRESSIVE CSS CONTAINMENT ***
