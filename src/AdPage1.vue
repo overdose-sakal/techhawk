@@ -155,6 +155,14 @@ export default {
   },
 
   computed: {
+    sanitizedPaginatedBlogs() {
+      const start = (this.blogPage - 1) * this.perPage;
+      return this.blogs.slice(start, start + this.perPage).map(b => ({
+        ...b,
+        // Sanitize the substring content before rendering
+        safeContentPreview: DOMPurify.sanitize(b.content.substring(0, 80) + '...')
+      }));
+    },
     circleOffset1() {
       const circ = 2 * Math.PI * 45;
       return circ * (this.countdown1 / this.totalTime);

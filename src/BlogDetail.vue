@@ -1,6 +1,5 @@
 <template>
   <div class="detail-container">
-    <!-- Ad Banner Space 1 (Above Content) -->
     <div class="ad-container">
       <div class="ad-placeholder">Ad Space: 970x90 (Top)</div>
     </div>
@@ -17,10 +16,12 @@
       
       <img :src="post.thumbnail" class="post-image" :alt="post.title" onerror="this.onerror=null;this.src='https://placehold.co/900x450/161b22/c9d1d9?text=Image+Not+Found'" />
       
-      <!-- Full Content Display -->
       <div class="post-body">
-        <!-- Assuming 'content' field holds the full text. For rich HTML, you would use v-html and ensure content is sanitized. -->
-        <p>{{ post.content }}</p>
+        <div v-html="sanitizedContent"></div>
+      </div>
+
+      <div class="ad-container middle-ad">
+        <div class="ad-placeholder">Ad Space: 728x90 (Middle)</div>
       </div>
 
       <router-link to="/blogs" class="back-link">
@@ -31,23 +32,22 @@
     <div v-else class="error-state">
       <p>⚠️ {{ error || 'Blog post not found. Please check the URL.' }}</p>
       <router-link to="/blogs" class="back-link">
-        Go to Blogs Page
+        &larr; Back to All Blogs
       </router-link>
     </div>
 
-    <!-- Ad Banner Space 2 (Below Content) -->
     <div class="ad-container">
-      <div class="ad-placeholder">Ad Space: 970x90 (Bottom)</div>
+      <div class="ad-placeholder">Ad Space: 970x250 (Bottom)</div>
     </div>
   </div>
 </template>
 
 <script>
-import { supabase } from "./supabase"; // Assuming supabase is accessible from here
+import { supabase } from "./supabase";
+// 1. Import DOMPurify
+import DOMPurify from 'dompurify';
 
 export default {
-  // Accepts the 'id' parameter from the route
-  props: ['id'], 
   data() {
     return {
       post: null,
@@ -55,10 +55,21 @@ export default {
       error: null,
     };
   },
+  
+  // 2. Computed property for sanitized content
+  computed: {
+    sanitizedContent() {
+      if (this.post && this.post.content) {
+        return DOMPurify.sanitize(this.post.content);
+      }
+      return '';
+    },
+  },
+
   methods: {
     formattedDate(dateString) {
       if (!dateString) return 'N/A';
-      return new Date(dateString).toLocaleDateString('en-US', {
+      return new Date(dateString).toLocaleDateString("en-US", {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -66,37 +77,33 @@ export default {
     },
     async fetchPost() {
       this.isLoading = true;
-      this.error = null;
-      this.post = null; // Clear previous post
-
       try {
+        const postId = this.$route.params.id;
         const { data, error } = await supabase
           .from("blogs")
           .select("*")
-          .eq("id", this.id)
-          .single(); // Use single() for one record
+          .eq("id", postId)
+          .single();
 
-        if (error) {
-          throw error;
+        if (error && error.code !== 'PGRST116') { // PGRST116 is 'no rows found'
+            throw error;
         }
 
         this.post = data;
-      } catch (err) {
-        console.error("Error fetching blog post:", err);
-        this.error = "Could not load blog post. It might not exist or the network failed.";
+        this.error = null;
+
+      } catch (e) {
+        console.error('Error fetching blog post:', e);
+        this.error = e.message || 'An unknown error occurred.';
+        this.post = null;
       } finally {
         this.isLoading = false;
       }
     },
   },
-  // Fetch data immediately when the component is mounted
-  mounted() {
+  async mounted() {
     this.fetchPost();
   },
-  // Watch for route changes (e.g., navigating from /full-blog/1 to /full-blog/2)
-  watch: {
-    '$route.params.id': 'fetchPost'
-  }
 };
 </script>
 

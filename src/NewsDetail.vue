@@ -1,17 +1,14 @@
 <template>
   <div class="detail-container">
-    <!-- Ad Banner Space 1 (Above Content) -->
     <div class="ad-container">
       <div class="ad-placeholder">Ad Space: 970x90 (Top)</div>
     </div>
 
     <div v-if="isLoading" class="loading-state">
-      <!-- FIXED: Changed 'blog' to 'news' -->
       <p>Loading news article content...</p>
     </div>
 
     <div v-else-if="post" class="post-content-wrapper">
-      <!-- FIXED: Changed icon from '📚' to '📰' (News) -->
       <h1 class="post-title">📰 {{ post.title }}</h1>
       <div class="post-meta">
         By: {{ post.author || 'N/A' }} | Published on: {{ formattedDate(post.created_at) }}
@@ -19,40 +16,38 @@
       
       <img :src="post.thumbnail" class="post-image" :alt="post.title" onerror="this.onerror=null;this.src='https://placehold.co/900x450/161b22/c9d1d9?text=Image+Not+Found'" />
       
-      <!-- Full Content Display -->
       <div class="post-body">
-        <!-- For rich HTML content, we use v-html instead of just displaying text content -->
-        <div v-html="post.content"></div>
+        <div v-html="sanitizedContent"></div>
       </div>
 
-      <!-- FIXED: Changed link destination to '/news' -->
+      <div class="ad-container middle-ad">
+        <div class="ad-placeholder">Ad Space: 728x90 (Middle)</div>
+      </div>
+
       <router-link to="/news" class="back-link">
         &larr; Back to All News
       </router-link>
     </div>
 
     <div v-else class="error-state">
-      <!-- FIXED: Changed 'Blog post' to 'News article' -->
       <p>⚠️ {{ error || 'News article not found. Please check the URL.' }}</p>
-      <!-- FIXED: Changed link destination to '/news' -->
       <router-link to="/news" class="back-link">
-        Go to News Page
+        &larr; Back to All News
       </router-link>
     </div>
 
-    <!-- Ad Banner Space 2 (Below Content) -->
     <div class="ad-container">
-      <div class="ad-placeholder">Ad Space: 970x90 (Bottom)</div>
+      <div class="ad-placeholder">Ad Space: 970x250 (Bottom)</div>
     </div>
   </div>
 </template>
 
 <script>
-import { supabase } from "./supabase"; // Assuming supabase is accessible from here
+import { supabase } from "./supabase";
+// 1. Import DOMPurify
+import DOMPurify from 'dompurify';
 
 export default {
-  // Accepts the 'id' parameter from the route
-  props: ['id'], 
   data() {
     return {
       post: null,
@@ -60,10 +55,21 @@ export default {
       error: null,
     };
   },
+  
+  // 2. Computed property for sanitized content
+  computed: {
+    sanitizedContent() {
+      if (this.post && this.post.content) {
+        return DOMPurify.sanitize(this.post.content);
+      }
+      return '';
+    },
+  },
+
   methods: {
     formattedDate(dateString) {
       if (!dateString) return 'N/A';
-      return new Date(dateString).toLocaleDateString('en-US', {
+      return new Date(dateString).toLocaleDateString("en-US", {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -71,39 +77,33 @@ export default {
     },
     async fetchPost() {
       this.isLoading = true;
-      this.error = null;
-      this.post = null; // Clear previous post
-
       try {
+        const postId = this.$route.params.id;
         const { data, error } = await supabase
-          // CRITICAL FIX: Query the 'news' table, not 'blogs'
           .from("news")
           .select("*")
-          .eq("id", this.id)
-          .single(); // Use single() for one record
+          .eq("id", postId)
+          .single();
 
-        if (error) {
-          throw error;
+        if (error && error.code !== 'PGRST116') { // PGRST116 is 'no rows found'
+            throw error;
         }
-
+        
         this.post = data;
-      } catch (err) {
-        // FIXED: Updated error message for console and state
-        console.error("Error fetching news article:", err);
-        this.error = "Could not load news article. It might not exist or the network failed.";
+        this.error = null;
+
+      } catch (e) {
+        console.error('Error fetching news article:', e);
+        this.error = e.message || 'An unknown error occurred.';
+        this.post = null;
       } finally {
         this.isLoading = false;
       }
     },
   },
-  // Fetch data immediately when the component is mounted
-  mounted() {
+  async mounted() {
     this.fetchPost();
   },
-  // Watch for route changes (e.g., navigating from /full-news/1 to /full-news/2)
-  watch: {
-    '$route.params.id': 'fetchPost'
-  }
 };
 </script>
 

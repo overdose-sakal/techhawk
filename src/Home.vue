@@ -18,7 +18,7 @@
           <img :src="b.thumbnail" class="post-img" alt="Blog thumbnail" />
           <div class="post-info">
             <h3>{{ b.title }}</h3>
-            <p>{{ b.content.substring(0, 80) }}...</p>
+            <p v-html="b.safeContentPreview"></p>
           </div>
         </router-link>
       </transition-group>
@@ -66,7 +66,7 @@
           <img :src="n.thumbnail" class="post-img" alt="News thumbnail" />
           <div class="post-info">
             <h3>{{ n.title }}</h3>
-            <p>{{ n.content.substring(0, 80) }}...</p>
+            <p v-html="n.safeContentPreview"></p>
           </div>
         </router-link>
       </transition-group>
@@ -103,6 +103,7 @@
 <script>
 // NOTE: Ensure your local environment has the correct path to supabase.js
 import { supabase } from "./supabase";
+import DOMPurify from 'dompurify';
 
 export default {
   data() {
@@ -119,15 +120,27 @@ export default {
   },
 
   computed: {
+    // Combines pagination and content sanitation for blogs
     paginatedBlogs() {
       // Logic for displaying only the current "slide" (3 items)
       const start = (this.blogPage - 1) * this.perPage;
-      return this.blogs.slice(start, start + this.perPage);
+      // Slice the array, then map/sanitize the content
+      return this.blogs.slice(start, start + this.perPage).map(b => ({
+        ...b,
+        // Sanitize the substring content before rendering
+        safeContentPreview: DOMPurify.sanitize(b.content.substring(0, 80) + '...')
+      }));
     },
+    // Combines pagination and content sanitation for news
     paginatedNews() {
       // Logic for displaying only the current "slide" (3 items)
       const start = (this.newsPage - 1) * this.perPage;
-      return this.news.slice(start, start + this.perPage);
+      // Slice the array, then map/sanitize the content
+      return this.news.slice(start, start + this.perPage).map(n => ({
+        ...n,
+        // Sanitize the substring content before rendering
+        safeContentPreview: DOMPurify.sanitize(n.content.substring(0, 80) + '...')
+      }));
     },
     totalBlogPages() {
       return Math.ceil(this.blogs.length / this.perPage);
@@ -331,3 +344,179 @@ body {
   position: absolute; /* Allows for smooth element removal */
 }
 </style>
+
+<!-- <style>
+/* 1. Base & Layout
+*/
+body {
+  margin: 0;
+  background-color: #0d1117; /* Dark background */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.home-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+  color: #c9d1d9; /* Light text color */
+}
+
+/* 2. Section Titles
+*/
+.section-title {
+  margin: 40px 0 20px;
+  font-size: 28px;
+  border-bottom: 2px solid #21262d;
+  padding-bottom: 8px;
+  color: #58a6ff; /* Accent color for title */
+  font-weight: 700;
+}
+
+/* 3. Grid / Carousel View
+*/
+.post-grid {
+  display: grid;
+  /* Always show 3 columns on desktop, 1 on mobile */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+  gap: 20px;
+  min-height: 400px; /* Prevent layout shift while loading */
+}
+
+/* 4. Card Styles
+*/
+.post-card {
+  background: #161b22; /* Slightly darker than background */
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #30363d;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  /* Add this to remove default router-link underline/color */
+  text-decoration: none;
+  color: inherit;
+}
+
+.post-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-color: #58a6ff;
+}
+
+/* Image */
+.post-img {
+  width: 100%;
+  height: 200px; /* Taller image for better impact */
+  object-fit: cover;
+  border-bottom: 1px solid #30363d;
+}
+
+/* Info */
+.post-info {
+  padding: 15px;
+}
+
+.post-info h3 {
+  margin-bottom: 8px;
+  font-size: 18px;
+  color: #58a6ff;
+  line-height: 1.4;
+}
+
+.post-info p {
+  opacity: 0.8;
+  font-size: 14px;
+  color: #c9d1d9;
+}
+
+/* 5. Carousel Pagination (Dots and Arrows)
+*/
+.carousel-pagination {
+  margin: 40px 0 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: #30363d;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.dot:hover {
+  background: #58a6ff;
+}
+
+.dot.active {
+  background: #58a6ff;
+  transform: scale(1.2);
+}
+
+.nav-arrow {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+
+.nav-arrow:hover {
+  background: #58a6ff;
+  color: #0d1117;
+  border-color: #58a6ff;
+}
+
+.nav-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: transparent;
+  color: #c9d1d9;
+}
+
+/* 6. Ad placeholders
+*/
+.ad-container {
+  margin: 30px 0;
+  text-align: center;
+}
+
+.ad-placeholder {
+  width: 100%;
+  max-width: 970px;
+  height: 90px;
+  margin: auto;
+  background: #1b1b22;
+  border: 2px dashed #30363d;
+  color: #777;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* 7. Transition (Optional: for a small slide effect)
+*/
+.post-slide-enter-active, .post-slide-leave-active {
+  transition: all 0.5s ease;
+}
+.post-slide-enter-from, .post-slide-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.post-slide-leave-active {
+  position: absolute; /* Allows for smooth element removal */
+}
+</style> -->

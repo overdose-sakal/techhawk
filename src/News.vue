@@ -9,7 +9,7 @@
 
     <div class="post-grid">
       <router-link
-        v-for="n in news" 
+        v-for="n in sanitizedNews" 
         :key="n.id" 
         :to="{ name: 'NewsDetail', params: { id: n.id } }"
         class="post-card"
@@ -17,7 +17,7 @@
         <img :src="n.thumbnail" class="post-img" alt="News thumbnail" />
         <div class="post-info">
           <h2>{{ n.title }}</h2>
-          <p>{{ n.content.substring(0, 150) }}...</p>
+          <p v-html="n.safeContentPreview"></p>
           <router-link :to="{ name: 'NewsDetail', params: { id: n.id } }" class="read-more-btn">
             Read More
           </router-link>
@@ -30,10 +30,22 @@
 
 <script>
 import { supabase } from "./supabase";
+// Import DOMPurify
+import DOMPurify from 'dompurify';
 
 export default {
   data() {
     return { news: [] };
+  },
+  computed: {
+    // Create computed property to sanitize content previews
+    sanitizedNews() {
+      // Map over the news to sanitize the substring and add a new safeContentPreview property
+      return this.news.map(n => ({
+        ...n,
+        safeContentPreview: DOMPurify.sanitize(n.content.substring(0, 150) + '...')
+      }));
+    }
   },
   async mounted() {
     const { data } = await supabase
