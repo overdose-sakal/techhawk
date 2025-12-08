@@ -38,7 +38,7 @@
 
       <div class="timer-section">
         <div v-if="countdown1 > 0" class="countdown-display">
-          
+
           <div class="countdown-circle">
             <svg class="countdown-svg" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="45" class="countdown-bg"></circle>
@@ -46,29 +46,29 @@
                 cx="50" 
                 cy="50" 
                 r="45" 
-                class="countdown-ring" 
-                :style="{ 'stroke-dashoffset': progressStyle1 }"
+                class="countdown-progress"
+                :style="{ strokeDashoffset: circleOffset1 }"
               ></circle>
             </svg>
-            <span class="countdown-time">{{ countdown1 }}</span>
+            <div class="countdown-number">{{ countdown1 }}</div>
           </div>
 
-          <p class="timer-text">Finalizing your secure download link...</p>
+          <p class="countdown-text">Please wait...</p>
         </div>
 
         <button 
-          v-else 
-          @click="handleDownload"
+          v-else-if="!step1Completed"
+          @click="completeStep1"
           class="continue-btn"
-          :disabled="!downloadUrl"
         >
-          Download Now! &darr;
+          Verify as a Human
         </button>
       </div>
 
-      <div v-if="latestNews" class="full-article-section">
+      <div v-if="step1Completed && latestNews" class="full-article-section">
         <article class="article-content">
-          <h2 class="article-title">📢 {{ latestNews.title }}</h2>
+
+          <h2 class="article-title">📰 {{ latestNews.title }}</h2>
 
           <div class="article-meta" v-if="latestNews.created_at">
             <span>{{ formattedDate(latestNews.created_at) }}</span>
@@ -82,65 +82,162 @@
             onerror="this.onerror=null;this.src='https://placehold.co/900x400/161b22/c9d1d9?text=No+Image'"
           />
 
-          <div class="article-body">
-            <div v-html="sanitizedNewsContent"></div>
-          </div>
+          <div class="article-body" v-html="sanitizedNewsContent"></div>
         </article>
       </div>
-      <div class="ad-container middle-ad">
-        <div class="ad-placeholder square-ad-placeholder">
-          <div id="container-square-middle"></div>
+
+      <div v-else-if="step1Completed && !latestNews && !isLoadingNews" class="no-content-section">
+        <p>📰 No news available yet. Check back soon!</p>
+      </div>
+
+      <div v-if="step1Completed" class="timer-section">
+        <div v-if="countdown2 > 0" class="countdown-display">
+
+          <div class="countdown-circle">
+            <svg class="countdown-svg" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" class="countdown-bg"></circle>
+              <circle 
+                cx="50" 
+                cy="50" 
+                r="45" 
+                class="countdown-progress"
+                :style="{ strokeDashoffset: circleOffset2 }"
+              ></circle>
+            </svg>
+            <div class="countdown-number">{{ countdown2 }}</div>
+          </div>
+
+          <p class="countdown-text">Generating download link...</p>
+        </div>
+
+        <button 
+          v-else
+          @click="goToDownload"
+          class="continue-btn pulse"
+          :disabled="!canContinue"
+        >
+          Continue
+        </button>
+      </div>
+
+      <div v-if="step1Completed" class="ad-container bottom-ad">
+        <div class="ad-placeholder">
+          <div id="my-ad-slot"></div>
+
         </div>
       </div>
 
-      <p class="security-notice">
-        Thank you for supporting us by viewing the ads. Enjoy your movie!
-      </p>
+      <div class="ad-container bottomest-ad">
+        <div class="ad-placeholder native-ad-placeholder">
+          <div id="container-d3e5f275b234c1684bbd1dd364aced62"></div>
+        </div>
+      </div>
+
+      <div class="security-notice">
+        <p>🔒 Secure Download | ⏳ Link expires in {{ remainingMinutes }} minutes</p>
+        <p class="small-notice">Your file will be sent via Telegram bot</p>
+      </div>
+
     </div>
-    
   </div>
 </template>
 
 <script>
 import { supabase } from "./supabase";
-import DOMPurify from 'dompurify'; // 1. DOMPurify Import
+// 1. IMPORT DOMPURIFY
+import DOMPurify from 'dompurify';
 
 export default {
-  name: 'AdPage2',
   data() {
     return {
-      countdown1: 5, 
-      interval1: null,
+      token: "",
+      countdown1: 10,
+      countdown2: 10,
+      step1Completed: false,
+      canContinue: false,
       adblockDetected: false,
       isValidSession: true,
-      downloadUrl: null,
-      latestNews: null, 
+      latestNews: null,
       isLoadingNews: true,
+      intervalId1: null,
+      intervalId2: null,
+      elapsedIntervalId: null,
+      elapsedMinutes: 0,
+      startTime: Date.now(),
+      totalTime: 10
     };
   },
+
   computed: {
-    progressStyle1() {
-      const circumference = 2 * Math.PI * 45;
-      return circumference * (1 - this.countdown1 / 5);
-    },
-    // 2. Computed property for sanitizing the news content
+    // 2. COMPUTED PROPERTY FOR SANITIZATION
     sanitizedNewsContent() {
       if (this.latestNews && this.latestNews.content) {
         return DOMPurify.sanitize(this.latestNews.content);
       }
       return '';
     },
-  },
-  methods: {
-    formattedDate(date) {
-      if (!date) return "";
-      return new Date(date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-      });
+    circleOffset1() {
+      return 2 * Math.PI * 45 * (this.countdown1 / this.totalTime);
     },
-    async fetchLatestNews() { 
+    circleOffset2() {
+      return 2 * Math.PI * 45 * (this.countdown2 / this.totalTime);
+    },
+    remainingMinutes() {
+      const remaining = 60 - this.elapsedMinutes;
+      return remaining > 0 ? remaining : 0;
+    }
+  },
+
+  mounted() {
+    if (typeof this.loadAdScript === 'function') {
+        this.loadAdScript();
+    }
+
+    this.loadHilTopAd();
+
+
+    
+    const params = new URLSearchParams(window.location.search);
+    this.token = params.get("token");
+
+    if (!this.token) {
+      this.isValidSession = false;
+      return;
+    }
+
+    if (!sessionStorage.getItem("ad_page_1_completed")) {
+      this.isValidSession = false;
+      return;
+    }
+
+    sessionStorage.removeItem("ad_page_2_completed");
+
+    this.fetchLatestNews();
+    this.startCountdown1(); 
+    this.trackElapsedTime(); 
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", this.preventBack);
+
+        const container = document.getElementById("my-ad-slot");
+  const script = document.createElement("script");
+
+  script.src = "//emotional-orange.com/biX.V/sgdDGrlH0sY/WKcw/SenmG9BuaZRU/l_kLPQTIYi3OMvjZEY2ENXD-IltLNojAc/ysMVTaYi0tMrwX";
+  script.async = true;
+  script.referrerPolicy = "no-referrer-when-downgrade";
+
+  container.appendChild(script);
+  },
+
+  beforeUnmount() {
+    if (this.intervalId1) clearInterval(this.intervalId1);
+    if (this.intervalId2) clearInterval(this.intervalId2);
+    if (this.elapsedIntervalId) clearInterval(this.elapsedIntervalId);
+    window.removeEventListener("popstate", this.preventBack);
+  },
+
+  methods: {
+    async fetchLatestNews() {
       this.isLoadingNews = true;
       try {
         const { data } = await supabase
@@ -156,55 +253,107 @@ export default {
         this.isLoadingNews = false;
       }
     },
-    startCountdown1() {
-      if (this.interval1) clearInterval(this.interval1);
-      this.interval1 = setInterval(() => {
-        if (this.countdown1 > 0) {
-          this.countdown1--;
+
+    loadHilTopAd() {
+        const adScriptContent = `
+(function(uhc){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = uhc || {};
+s.src = "//emotional-orange.com/b.XwVhsEdsGGl/0RYuWwcp/Oezm/9cuNZ/U/l/krP/TLYr3jMrjJE/1CNujsgOtENojPc_y/MOTwU-2/OGQq";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+        `;
+
+        const scriptElement = document.createElement("script");
+        scriptElement.type = "text/javascript";
+        scriptElement.text = adScriptContent;
+
+        const targetElement = document.getElementById("container-banner-top");
+
+        if (targetElement) {
+            targetElement.appendChild(scriptElement);
         } else {
-          clearInterval(this.interval1);
-          this.generateDownloadLink();
+            console.error("Ad holder 'container-banner-top' not found.");
+            document.body.appendChild(scriptElement);
+        }
+    },
+
+    completeStep1() {
+      this.step1Completed = true;
+      this.$nextTick(() => {
+        this.startCountdown2();
+      });
+    },
+
+    formattedDate(date) {
+      if (!date) return "";
+      return new Date(date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+    },
+
+    startCountdown1() {
+      if (this.intervalId1) clearInterval(this.intervalId1);
+      this.intervalId1 = setInterval(() => {
+        if (this.countdown1 > 0) this.countdown1--;
+        else {
+            clearInterval(this.intervalId1);
+            this.completeStep1(); // Auto-completes the first step to reveal news
         }
       }, 1000);
     },
-    generateDownloadLink() {
-      this.downloadUrl = 'https://link.to.your.movie.com/signed-url?token=xyz123';
+
+    startCountdown2() {
+      if (this.intervalId2) clearInterval(this.intervalId2);
+      this.intervalId2 = setInterval(() => {
+        if (this.countdown2 > 0) this.countdown2--;
+        else {
+          clearInterval(this.intervalId2);
+          this.canContinue = true;
+        }
+      }, 1000);
     },
-    handleDownload() {
-      if (this.downloadUrl) {
-        window.location.href = this.downloadUrl;
-        sessionStorage.setItem("ad_page_2_completed", "true");
-      }
+
+    trackElapsedTime() {
+      this.elapsedIntervalId = setInterval(() => {
+        const now = Date.now();
+        const diffInMinutes = Math.floor((now - this.startTime) / 60000);
+        this.elapsedMinutes = diffInMinutes;
+
+        if (this.remainingMinutes <= 0) {
+          clearInterval(this.elapsedIntervalId);
+          // Optionally, redirect to an expired page or show an error
+        }
+      }, 60000); // Check every minute
     },
-    checkAdblock() {
-      this.adblockDetected = false; 
+
+    goToDownload() {
+      if (!this.canContinue) return;
+
+      sessionStorage.setItem("ad_page_2_completed", "true");
+
+      const params = new URLSearchParams(window.location.search);
+      // Construct the final download link based on token, title, and quality
+      window.location.href = `/download?token=${this.token}&title=${params.get(
+        "title"
+      )}&quality=${params.get("quality")}`;
     },
+
+    preventBack() {
+      window.history.pushState(null, "", window.location.href);
+    },
+
     recheckAdblock() {
-      this.checkAdblock();
-      if (!this.adblockDetected) {
-        this.startCountdown1();
-      }
-    },
-    validateSession() {
-        const completed1 = sessionStorage.getItem("ad_page_1_completed");
-        if (!completed1) {
-            this.isValidSession = false;
-        }
+      this.adblockDetected = false;
+      this.startCountdown1();
     }
-  },
-  mounted() {
-    this.validateSession();
-    this.fetchLatestNews(); // Fetch news content
-    if (this.isValidSession) {
-        this.checkAdblock();
-        if (!this.adblockDetected) {
-            this.startCountdown1();
-        }
-    }
-  },
-  beforeUnmount() {
-    if (this.interval1) clearInterval(this.interval1);
-  },
+  }
 };
 </script>
 
