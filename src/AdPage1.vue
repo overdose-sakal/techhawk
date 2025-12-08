@@ -23,9 +23,7 @@
       <h1 class="page-title">🎬 Preparing Your Download</h1>
 
       <div class="ad-container top-ad">
-        <div class="ad-placeholder banner-ad-placeholder">
-          <div id="container-banner-top"></div>
-        </div>
+        <iframe src="//a.magsrv.com/iframe.php?idzone=5792822&size=900x250" width="900" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
       </div>
 
       <div class="timer-section">
@@ -335,8 +333,8 @@ l.parentNode.insertBefore(s, l);
   justify-content: center;
   
   /* EXPLICIT SIZE MATCHING 728x90 BANNER */
-  height: 90px; 
-  max-height: 90px;
+height: 250px; /* Increased from 90px to match iframe */
+  max-height: 250px;
   width: 100%;
   max-width: 900px;
   z-index: 10; /* Make sure it stacks above most elements */
