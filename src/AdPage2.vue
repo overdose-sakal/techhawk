@@ -122,7 +122,6 @@
       <div v-if="step1Completed" class="ad-container bottom-ad">
         <div class="ad-placeholder">
           <div id="my-ad-slot"></div>
-
         </div>
       </div>
 
@@ -143,7 +142,6 @@
 
 <script>
 import { supabase } from "./supabase";
-// Import DOMPurify for XSS protection
 import DOMPurify from 'dompurify';
 
 export default {
@@ -168,7 +166,6 @@ export default {
   },
 
   computed: {
-    // Computed property for sanitizing the news content
     sanitizedNewsContent() {
       if (this.latestNews && this.latestNews.content) {
         return DOMPurify.sanitize(this.latestNews.content);
@@ -193,8 +190,6 @@ export default {
     }
 
     this.loadHilTopAd();
-
-
     
     const params = new URLSearchParams(window.location.search);
     this.token = params.get("token");
@@ -218,14 +213,12 @@ export default {
     window.history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", this.preventBack);
 
-        const container = document.getElementById("my-ad-slot");
-  const script = document.createElement("script");
-
-  script.src = "//emotional-orange.com/biX.V/sgdDGrlH0sY/WKcw/SenmG9BuaZRU/l_kLPQTIYi3OMvjZEY2ENXD-IltLNojAc/ysMVTaYi0tMrwX";
-  script.async = true;
-  script.referrerPolicy = "no-referrer-when-downgrade";
-
-  container.appendChild(script);
+    const container = document.getElementById("my-ad-slot");
+    const script = document.createElement("script");
+    script.src = "//emotional-orange.com/biX.V/sgdDGrlH0sY/WKcw/SenmG9BuaZRU/l_kLPQTIYi3OMvjZEY2ENXD-IltLNojAc/ysMVTaYi0tMrwX";
+    script.async = true;
+    script.referrerPolicy = "no-referrer-when-downgrade";
+    container.appendChild(script);
   },
 
   beforeUnmount() {
@@ -266,13 +259,11 @@ s.referrerPolicy = 'no-referrer-when-downgrade';
 l.parentNode.insertBefore(s, l);
 })({})
         `;
-
         const scriptElement = document.createElement("script");
         scriptElement.type = "text/javascript";
         scriptElement.text = adScriptContent;
 
         const targetElement = document.getElementById("container-banner-top");
-
         if (targetElement) {
             targetElement.appendChild(scriptElement);
         } else {
@@ -328,7 +319,7 @@ l.parentNode.insertBefore(s, l);
         if (this.remainingMinutes <= 0) {
           clearInterval(this.elapsedIntervalId);
         }
-      }, 60000); // Check every minute
+      }, 60000); 
     },
 
     goToDownload() {
@@ -337,19 +328,11 @@ l.parentNode.insertBefore(s, l);
       sessionStorage.setItem("ad_page_2_completed", "true");
 
       const params = new URLSearchParams(window.location.search);
+      const title = params.get("title") || '';
+      const quality = params.get("quality") || '';
       
-      // *** FIX: Redirecting directly to the Telegram bot link or an intermediary page that redirects to it. ***
-      // Assuming the Telegram bot link is structured to accept the token or a unique identifier.
-      // Example of a Telegram link structure:
-      const title = params.get("title") || 'file';
-      const quality = params.get("quality") || 'HD';
-      
-      // Constructing a deep-link URL to interact with the bot
-      // You may need to replace 'YourBotUsername' with the actual bot username and define the `start` payload.
-      // The payload (e.g., this.token) will contain the information needed to deliver the file.
-      const telegramUrl = `https://t.me/YourBotUsername?start=${this.token}-${title}-${quality}`;
-      
-      window.location.href = telegramUrl;
+      // *** FIX: Redirect to download.html with parameters ***
+      window.location.href = `https://bollyfun.onrender.com/download.html?token=${this.token}&title=${title}&quality=${quality}`;
     },
 
     preventBack() {
