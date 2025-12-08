@@ -26,6 +26,10 @@
         <iframe src="//a.magsrv.com/iframe.php?idzone=5792822&size=900x250" width="900" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
       </div>
 
+      <div class="ad-container banner-two">
+        <iframe src="//a.magsrv.com/iframe.php?idzone=5792828&size=300x250" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
+      </div>
+
       <div class="timer-section">
         <div v-if="countdown1 > 0" class="countdown-display">
 
@@ -55,32 +59,46 @@
         </button>
       </div>
 
-      <div v-if="step1Completed && latestBlog" class="full-article-section">
-        <article class="article-content">
-          <h2 class="article-title">📚 {{ latestBlog.title }}</h2>
+      <div v-if="step1Completed" class="article-ad-sidebar-layout">
+        
+        <div v-if="latestBlog" class="ad-container vertical-ad left-ad">
+          <iframe src="//a.magsrv.com/iframe.php?idzone=5792832&size=160x600" width="160" height="600" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
+        </div>
+        
+        <div v-if="latestBlog" class="full-article-section">
+          <article class="article-content">
+            <h2 class="article-title">📚 {{ latestBlog.title }}</h2>
 
-          <div class="article-meta" v-if="latestBlog.created_at">
-            <span>{{ formattedDate(latestBlog.created_at) }}</span>
-          </div>
+            <div class="article-meta" v-if="latestBlog.created_at">
+              <span>{{ formattedDate(latestBlog.created_at) }}</span>
+            </div>
 
-          <img 
-            v-if="latestBlog.thumbnail"
-            :src="latestBlog.thumbnail" 
-            class="article-image" 
-            :alt="latestBlog.title"
-            onerror="this.onerror=null;this.src='https://placehold.co/900x400/161b22/c9d1d9?text=No+Image'"
-          />
+            <img 
+              v-if="latestBlog.thumbnail"
+              :src="latestBlog.thumbnail" 
+              class="article-image" 
+              :alt="latestBlog.title"
+              onerror="this.onerror=null;this.src='https://placehold.co/900x400/161b22/c9d1d9?text=No+Image'"
+            />
 
-          <div class="article-body">
-            <div v-html="sanitizedBlogContent"></div>
-          </div>
-        </article>
+            <div class="article-body">
+              <div v-html="sanitizedBlogContent"></div>
+            </div>
+          </article>
+        </div>
+
+        <div v-else-if="!latestBlog && !isLoadingBlog" class="no-content-section">
+          <p>📜 No blogs available yet. Check back soon!</p>
+        </div>
+        <div v-if="latestBlog" class="ad-container vertical-ad right-ad">
+          <iframe src="//a.magsrv.com/iframe.php?idzone=5792834&size=160x600" width="160" height="600" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
+        </div>
+
       </div>
-
-      <div v-else-if="step1Completed && !latestBlog && !isLoadingBlog" class="no-content-section">
-        <p>📜 No blogs available yet. Check back soon!</p>
+      <div v-if="step1Completed" class="ad-container banner-three">
+        <iframe src="//a.magsrv.com/iframe.php?idzone=5792830&size=300x500" width="300" height="500" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
       </div>
-
+      
       <div v-if="step1Completed" class="timer-section">
         <div v-if="countdown2 > 0" class="countdown-display">
 
@@ -176,9 +194,8 @@ export default {
         this.loadAdScript();
     }
     
-    this.loadHilTopAd();
-
-
+    // Call the new sticky ad loader
+    this.loadStickyAd();
     
     const params = new URLSearchParams(window.location.search);
     this.token = params.get("token");
@@ -233,40 +250,36 @@ export default {
       }
     },
 
-    loadHilTopAd() {
-        const adScriptContent = `
-(function(uhc){
-var d = document,
-    s = d.createElement('script'),
-    l = d.scripts[d.scripts.length - 1];
-s.settings = uhc || {};
-s.src = "//emotional-orange.com/b.XwVhsEdsGGl/0RYuWwcp/Oezm/9cuNZ/U/l/krP/TLYr3jMrjJE/1CNujsgOtENojPc_y/MOTwU-2/OGQq";
-s.async = true;
-s.referrerPolicy = 'no-referrer-when-downgrade';
-l.parentNode.insertBefore(s, l);
-})({})
-        `;
+    // New method to load the sticky banner script and HTML
+    loadStickyAd() {
+      // 1. Create the async script tag (ad-provider.js)
+      const script1 = document.createElement("script");
+      script1.async = true;
+      script1.type = "application/javascript";
+      script1.src = "https://a.magsrv.com/ad-provider.js";
+      document.body.appendChild(script1);
 
-        const scriptElement = document.createElement("script");
-        scriptElement.type = "text/javascript";
-        scriptElement.text = adScriptContent;
+      // 2. Create the ins tag for the ad slot
+      const insTag = document.createElement("ins");
+      insTag.className = "eas6a97888e17";
+      insTag.setAttribute("data-zoneid", "5792836");
+      document.body.appendChild(insTag);
 
-        const targetElement = document.getElementById("container-banner-top");
-
-        if (targetElement) {
-            targetElement.appendChild(scriptElement);
-        } else {
-            console.error("Ad holder 'container-banner-top' not found.");
-            document.body.appendChild(scriptElement);
-        }
+      // 3. Create the inline serving script
+      const script2 = document.createElement("script");
+      script2.innerHTML = '(AdProvider = window.AdProvider || []).push({"serve": {}});';
+      document.body.appendChild(script2);
     },
 
+    // loadHilTopAd function removed as the top ad is now an iframe
+    
     completeStep1() {
       this.step1Completed = true;
       this.$nextTick(() => {
         this.startCountdown2();
       });
     },
+// ... (rest of methods remain the same)
 
     formattedDate(date) {
       if (!date) return "";
@@ -320,6 +333,29 @@ l.parentNode.insertBefore(s, l);
 </script>
 
 <style scoped>
+
+  .article-ad-sidebar-layout {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Aligns items to the top */
+  max-width: 1280px; /* Adjust as needed */
+  margin: 50px auto;
+  gap: 20px; /* Space between ads and article */
+}
+
+/* Ensure the article section takes the remaining space in the center */
+.article-ad-sidebar-layout .full-article-section,
+.article-ad-sidebar-layout .no-content-section {
+    flex-grow: 1;
+    max-width: 900px; /* Max width of the article */
+}
+
+/* Ensure vertical ads don't take up too much space when not visible or on small screens */
+.ad-container.vertical-ad {
+  flex-shrink: 0;
+  width: 160px;
+  height: 600px;
+}
 /*
  * *** FIX: AGGRESSIVE CSS CONTAINMENT ***
  * These styles force the banner size and use position: relative/overflow: hidden
